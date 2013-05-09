@@ -1,25 +1,25 @@
 /*
-*      _______                       _        ____ _     _
-*     |__   __|                     | |     / ____| |   | |
-*        | | __ _ _ __ ___  ___  ___| |    | (___ | |___| |
-*        | |/ _` | '__/ __|/ _ \/ __| |     \___ \|  ___  |
-*        | | (_| | |  \__ \ (_) \__ \ |____ ____) | |   | |
-*        |_|\__,_|_|  |___/\___/|___/_____/|_____/|_|   |_|
-*                                                         
-* -----------------------------------------------------------
-*
-*  TarsosLSH is developed by Joren Six at 
-*  The School of Arts,
-*  University College Ghent,
-*  Hoogpoort 64, 9000 Ghent - Belgium
-*  
-* -----------------------------------------------------------
-*
-*  Info    : http://tarsos.0110.be/tag/TarsosLSH
-*  Github  : https://github.com/JorenSix/TarsosLSH
-*  Releases: http://tarsos.0110.be/releases/TarsosLSH/
-* 
-*/
+ *      _______                       _        ____ _     _
+ *     |__   __|                     | |     / ____| |   | |
+ *        | | __ _ _ __ ___  ___  ___| |    | (___ | |___| |
+ *        | |/ _` | '__/ __|/ _ \/ __| |     \___ \|  ___  |
+ *        | | (_| | |  \__ \ (_) \__ \ |____ ____) | |   | |
+ *        |_|\__,_|_|  |___/\___/|___/_____/|_____/|_|   |_|
+ *                                                         
+ * -----------------------------------------------------------
+ *
+ *  TarsosLSH is developed by Joren Six at 
+ *  The School of Arts,
+ *  University College Ghent,
+ *  Hoogpoort 64, 9000 Ghent - Belgium
+ *  
+ * -----------------------------------------------------------
+ *
+ *  Info    : http://tarsos.0110.be/tag/TarsosLSH
+ *  Github  : https://github.com/JorenSix/TarsosLSH
+ *  Releases: http://tarsos.0110.be/releases/TarsosLSH/
+ * 
+ */
 package be.hogent.tarsos.lsh;
 
 import java.util.List;
@@ -41,33 +41,33 @@ import be.hogent.tarsos.lsh.util.TestUtils;
  * @author Joren Six
  */
 public class CommandLineInterface {
-	
+
 	private String[] arguments;
-	
+
 	private int numberOfHashTables;
 	private int numberOfHashes;
 	private int numberOfNeighbours;
 	private double radius;
-	
+
 	private List<Vector> dataset;
 	private List<Vector> queries;
-	
+
 	private int dimensions;
 	private DistanceMeasure measure;
 	private int timeout = 40; //seconds timeout for radius search.
 	private HashFamily family;
-	
+
 	private boolean benchmark;
 	private boolean printHelp;
-	
+
 	public CommandLineInterface(String... args){		
 		this.arguments = args;
 	}
-	
+
 	/**
 	 * Parses the arguments currently stored in the argument list.
 	 */
-	public void parseArguments(){
+	public void parseArguments(List<Vector> _dataset){
 		numberOfHashTables = getIntegerValue("-t",4);
 		numberOfHashes = getIntegerValue("-h",4);
 		numberOfNeighbours = getIntegerValue("-n",4);
@@ -78,12 +78,20 @@ public class CommandLineInterface {
 		String datasetFile = datafileFile(true);
 		String queryFile = datafileFile(false);
 		if(datasetFile == null){
-			dimensions = 256;
-			if(radius==0){
-				radius = 10;
+			if(_dataset==null){
+				dimensions = 256;
+				if(radius==0){
+					radius = 10;
+				}
+				dataset = TestUtils.generate(dimensions, 100,512);
+				TestUtils.addNeighbours(dataset, numberOfNeighbours, radius);
+			}else{
+				dataset=_dataset;
+				dimensions = dataset.get(0).getDimensions();
+				if(radius==0){
+					radius = 10;
+				}
 			}
-			dataset = TestUtils.generate(dimensions, 100,512);
-			TestUtils.addNeighbours(dataset, numberOfNeighbours, radius);
 		}else{
 			dataset = LSH.readDataset(datasetFile,Integer.MAX_VALUE);
 			queries = LSH.readDataset(queryFile,Integer.MAX_VALUE);
@@ -111,8 +119,8 @@ public class CommandLineInterface {
 			startLSH();
 		}		
 	}
-	
-	
+
+
 	public void startBenchmark(){
 		//determine the radius for hash bins automatically
 		int radiusEuclidean = (int) LSH.determineRadius(dataset, new EuclideanDistance(), 20);
@@ -122,7 +130,7 @@ public class CommandLineInterface {
 				new EuclidianHashFamily(radiusEuclidean,dimensions),
 				new CityBlockHashFamily(radiusCityBlock,dimensions), 
 				new CosineHashFamily(dimensions)};
-		
+
 		for(HashFamily family:families){			
 			int[] numberOfHashes = {2,4,8};
 			if(family instanceof CosineHashFamily){
@@ -130,9 +138,9 @@ public class CommandLineInterface {
 				numberOfHashes[1] *= 8;
 				numberOfHashes[2] *= 8;
 			}
-				
+
 			int[] numberOfHashTables = {2,4,8,16};
-			
+
 			LSH lsh = new LSH(dataset,family);
 			System.out.println("\n--" + family.getClass().getName());
 			System.out.printf("%10s%15s%10s%10s%10s%10s%10s%10s\n","#hashes","#hashTables","Correct","Touched","linear","lsh","Precision","Recall");
@@ -144,9 +152,9 @@ public class CommandLineInterface {
 			}
 		}
 	}
-	
 
-	
+
+
 	private void startLSH(){
 		LSH lsh = new LSH(dataset, family);
 		lsh.buildIndex(numberOfHashes,numberOfHashTables);
@@ -158,7 +166,7 @@ public class CommandLineInterface {
 			}
 		}
 	}
-	
+
 	private HashFamily getHashFamily(double radius,String hashFamilyType,int dimensions){
 		HashFamily family = null;
 		if(hashFamilyType.equalsIgnoreCase("cos")){
@@ -174,7 +182,7 @@ public class CommandLineInterface {
 		}
 		return family;
 	}
-	
+
 	/**
 	 * Return either the first or last file in the arguments.
 	 * e.g.<code>program argument file1 -option value file2 -other-option file3</code>
@@ -203,7 +211,7 @@ public class CommandLineInterface {
 			return null;
 		}
 	}
-	
+
 	private boolean hasOption(String option){
 		int index = -1;
 		for(int i = 0 ; i < arguments.length ; i++){
@@ -213,7 +221,7 @@ public class CommandLineInterface {
 		}
 		return index >= 0;
 	}
-	
+
 	private Integer getIntegerValue(String option, Integer defaultValue){
 		String value = getValue(option, defaultValue.toString());
 		Integer integerValue = null;
@@ -224,11 +232,11 @@ public class CommandLineInterface {
 			message= "Expected integer argument for option " + option + ",  " + value + " is" +
 					" not an integer.";
 			printError(message);
-			
+
 		}
 		return integerValue;
 	}
-	
+
 	private Double getDoubleValue(String option, Double defaultValue){
 		String value = getValue(option, defaultValue.toString());
 		Double doubleValue = null;
@@ -239,11 +247,11 @@ public class CommandLineInterface {
 			message= "Expected integer argument for option " + option + ",  " + value + " is" +
 					" not an integer.";
 			printError(message);
-			
+
 		}
 		return doubleValue;
 	}
-	
+
 	private String getValue(String option,String defaultValue){
 		int index = -1;
 		final String value;
@@ -259,7 +267,7 @@ public class CommandLineInterface {
 		}
 		return value;
 	}
-	
+
 	/**
 	 * TarsosLSH
 	 */
@@ -276,7 +284,7 @@ public class CommandLineInterface {
 	private void printLine(){
 		System.err.println("----------------------------------------------------");
 	}
-	
+
 	private void printHelp(){
 		printPrefix();
 		printLine();
@@ -330,13 +338,14 @@ public class CommandLineInterface {
 		System.out.println("	");		
 		System.out.println("	java - jar TarsosLSH.jar -f l2 -r 500 -h 3 -t 5 dataset.txt queries.txt");
 	}
-	
+
 	private void printError(String message){
 		printHelp();
 		printLine();
 		System.out.println("GURU MEDITATION:");
 		printLine();
 		System.out.println(message);
-		
+
 	}
+	
 }

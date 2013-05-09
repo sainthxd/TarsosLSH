@@ -292,7 +292,7 @@ public class LSH {
 	
 	public static void main(String args[]) {
 		CommandLineInterface cli = new CommandLineInterface(args);
-		cli.parseArguments();
+		cli.parseArguments(null);
 		cli.startApplication();
 	}
 	

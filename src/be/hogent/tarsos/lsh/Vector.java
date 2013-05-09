@@ -51,7 +51,10 @@ public class Vector {
 	public Vector(int dimensions) {
 		values = new double[dimensions];
 	}
-	
+	public Vector(String key,double[] values) {
+		this.key=key;
+		this.values=values;
+	}	
 	
 	/**
 	 * Copy constructor.

@@ -1,5 +1,5 @@
 h1. TarsosLSH - Locality Sensitive Hashing (LSH) in Java
-
+这是一个开源的LSH实现，本fork仅仅增加了一些接口 以方便使用而已。
 TarsosLSH is a Java library implementing Locality-sensitive Hashing (LSH), a practical nearest neighbour search algorithm for multidimensional vectors that operates in sublinear time. It supports several Locality Sensitive Hashing (LSH) families: the Euclidean hash family (L<sub>2</sub>), city block hash family (L<sub>1</sub>) and cosine hash family. The library tries to hit the sweet spot between being capable enough to get real tasks done, and compact enough to serve as a demonstration on how <abbr title="Locality-sensitive Hashing">LSH</abbr> works.
 
 h2. Quickly Getting Started with TarsosLSH
